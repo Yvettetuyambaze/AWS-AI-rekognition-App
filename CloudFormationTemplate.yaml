@@ -1,0 +1,80 @@
+# This is a CloudFormation template that defines various AWS resources like Lambda functions,
+# SQS queues, and DynamoDB tables.
+
+# Version of the CloudFormation template format that you are using.
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  # This section defines an AWS Lambda function named "MyLambdaFunction".
+  MyLambdaFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      # Specifies the function handler; the entry point for Lambda function execution.
+      Handler: index.handler
+      # The IAM role that the Lambda function assumes when it is executed.
+      Role: !Sub "arn:aws:iam::570018071531:role/LabRole"
+      # The code that will be executed by the Lambda function, provided inline here.
+      Code:
+        ZipFile: |
+          import boto3
+          def lambda_handler(event, context):
+              # Entry point for Lambda function. Currently, does nothing.
+              pass
+      # The runtime environment for the Lambda function.
+      Runtime: python3.8
+
+  # Defines an Amazon SQS queue named "MySQSQueue".
+  MySQSQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      # Name of the SQS queue to be created.
+      QueueName: MySQSQueueS2110963
+
+  # DynamoDB table configuration for storing entries.
+  EntriesDynamoDBTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      # The name of the DynamoDB table.
+      TableName: EntriesTableS2110963
+      # Definitions of attributes for the table. Here, 'images_name' is defined as a string (S).
+      AttributeDefinitions:
+        - AttributeName: images_name
+          AttributeType: S
+      # Schema for the table's primary key. 'images_name' is used as the HASH key.
+      KeySchema:
+        - AttributeName: images_name
+          KeyType: HASH
+      # Throughput settings for read and write operations.
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  # DynamoDB table configuration for storing vehicle data.
+  VehiclesDynamoDBTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      # The name of the DynamoDB table for vehicles.
+      TableName: VehiclesTableS2110963
+      # Attribute definitions specify the data type of each attribute.
+      AttributeDefinitions:
+        - AttributeName: vehiclecar_id
+          AttributeType: S
+      # Defines the primary key for the table, using 'vehiclecar_id' as a HASH key.
+      KeySchema:
+        - AttributeName: vehiclecar_id
+          KeyType: HASH
+      # Provisioned throughput settings specify the capacity of read and write operations.
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  # This defines an event source mapping between the Lambda function and the SQS queue.
+  LambdaSQSMapping:
+    Type: "AWS::Lambda::EventSourceMapping"
+    Properties:
+      # The ARN of the SQS queue, dynamically retrieved.
+      EventSourceArn: !GetAtt MySQSQueue.Arn
+      # The ARN of the Lambda function, dynamically retrieved.
+      FunctionName: !GetAtt MyLambdaFunction.Arn
+      # Specifies whether the mapping is enabled or not.
+      Enabled: true
