@@ -1,0 +1,1 @@
+# AWS-AI-rekognition-App
